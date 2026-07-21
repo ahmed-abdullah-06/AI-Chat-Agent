@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ARIA — Adaptive Real-life Intelligence Agent</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#08080e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ARIA">
+  <link rel="apple-touch-icon" href="/logo.svg">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">A</div>
+      <div class="sb-wordmark">ARIA</div>
+      <button class="sb-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
+        <i class="ti ti-layout-sidebar-left-collapse"></i>
+      </button>
+    </div>
+
+    <div class="sb-section"><div class="sb-section-label">Modes</div></div>
+    <nav class="sb-nav">
+      <div class="nav-item active" id="nav-think" onclick="switchMode('think')">
+        <i class="ti ti-bulb ni-icon"></i>
+        <span class="ni-label">Think</span>
+        <div class="ni-dot" style="background:var(--think)"></div>
+      </div>
+      <div class="nav-item" id="nav-research" onclick="switchMode('research')">
+        <i class="ti ti-search ni-icon"></i>
+        <span class="ni-label">Research</span>
+        <div class="ni-dot" style="background:var(--research)"></div>
+      </div>
+      <div class="nav-item" id="nav-create" onclick="switchMode('create')">
+        <i class="ti ti-pencil ni-icon"></i>
+        <span class="ni-label">Create</span>
+        <div class="ni-dot" style="background:var(--create)"></div>
+      </div>
+      <div class="nav-item" id="nav-execute" onclick="switchMode('execute')">
+        <i class="ti ti-rocket ni-icon"></i>
+        <span class="ni-label">Execute</span>
+        <div class="ni-dot" style="background:var(--execute)"></div>
+      </div>
+    </nav>
+
+    <div class="sb-section" style="margin-top:6px"><div class="sb-section-label">Views</div></div>
+    <nav class="sb-nav">
+      <div class="nav-item" id="nav-news" onclick="showView('news')">
+        <i class="ti ti-world ni-icon"></i>
+        <span class="ni-label">World Feed</span>
+        <div class="ni-dot" style="background:var(--news)"></div>
+      </div>
+      <div class="nav-item" id="nav-dash" onclick="showView('dash')">
+        <i class="ti ti-chart-bar ni-icon"></i>
+        <span class="ni-label">Dashboard</span>
+      </div>
+      <div class="nav-item" id="nav-settings" onclick="showView('settings')">
+        <i class="ti ti-settings ni-icon"></i>
+        <span class="ni-label">Settings</span>
+      </div>
+    </nav>
+
+    <div class="sb-section" style="margin-top:6px">
+      <div class="sb-section-label" style="display:flex;align-items:center;justify-content:space-between">
+        History
+        <button onclick="clearAllHistory()" style="font-size:10px;background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0 2px">Clear</button>
+      </div>
+    </div>
+    <div class="sb-history" id="historyList">
+      <div style="font-size:11px;color:var(--text3);padding:6px 8px">No history yet</div>
+    </div>
+
+    <div class="sb-bottom">
+      <div class="profile-row" onclick="showView('settings')">
+        <div class="profile-av" id="profileAv">U</div>
+        <div class="profile-info">
+          <div class="profile-name" id="profileName">User</div>
+          <div class="profile-sub">ARIA Pro</div>
+        </div>
+        <i class="ti ti-chevron-right" style="font-size:14px;color:var(--text3)"></i>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="mobile-toggle" onclick="openMobileSidebar()">
+        <i class="ti ti-menu-2"></i>
+      </button>
+      <div class="topbar-mode">
+        <div class="topbar-dot" id="topDot" style="background:var(--think)"></div>
+        <span id="topModeLabel">Think</span>
+      </div>
+      <div class="topbar-right">
+        <button class="tb-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">
+          <i class="ti ti-microphone"></i>
+        </button>
+        <div class="tb-divider"></div>
+        <button class="tb-btn" onclick="openExportModal()" title="Export chat">
+          <i class="ti ti-download"></i>
+        </button>
+        <button class="tb-btn" onclick="newChat()" title="New chat">
+          <i class="ti ti-plus"></i>
+        </button>
+        <button class="tb-btn" id="themeBtn" onclick="cycleTheme()" title="Toggle theme">
+          <i class="ti ti-moon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- CHAT VIEW -->
+      <div class="chat-view" id="chatView">
+        <!-- WELCOME SCREEN -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-logo">A</div>
+          <div>
+            <div class="welcome-title">Good to see you</div>
+            <div class="welcome-sub" style="margin-top:6px">I'm ARIA — your adaptive intelligence agent. Pick a mode or just start typing.</div>
+          </div>
+          <div class="welcome-modes">
+            <div class="wm-pill" onclick="switchMode('think')" style="border-color:rgba(123,104,238,0.3);color:var(--accent2)"><i class="ti ti-bulb"></i> Think</div>
+            <div class="wm-pill" onclick="switchMode('research')" style="border-color:rgba(52,214,176,0.3);color:var(--research)"><i class="ti ti-search"></i> Research</div>
+            <div class="wm-pill" onclick="switchMode('create')" style="border-color:rgba(240,98,146,0.3);color:var(--create)"><i class="ti ti-pencil"></i> Create</div>
+            <div class="wm-pill" onclick="switchMode('execute')" style="border-color:rgba(255,165,82,0.3);color:var(--execute)"><i class="ti ti-rocket"></i> Execute</div>
+            <div class="wm-pill" onclick="showView('news')" style="border-color:rgba(82,184,255,0.3);color:var(--news)"><i class="ti ti-world"></i> World Feed</div>
+          </div>
+        </div>
+
+        <!-- MESSAGES -->
+        <div class="chat-messages hidden" id="chatMessages"></div>
+
+        <!-- CHIPS -->
+        <div class="chips-area" id="chipsArea">
+          <div class="chips-label">Try asking</div>
+          <div class="chips-row" id="chipsRow"></div>
+        </div>
+
+        <!-- INPUT -->
+        <div class="input-area">
+          <div class="input-wrap">
+            <textarea class="chat-textarea" id="chatInput" rows="1" placeholder="Ask ARIA anything..." oninput="onInputChange(this)" onkeydown="handleInputKey(event)"></textarea>
+            <div class="input-actions">
+              <span class="char-count" id="charCount"></span>
+              <button class="inp-btn" id="micBtn" onclick="toggleVoice()" title="Voice input">
+                <i class="ti ti-microphone"></i>
+              </button>
+              <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
+                <i class="ti ti-arrow-up"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD VIEW -->
+      <div class="panel-view hidden" id="dashView">
+        <div class="panel-title"><i class="ti ti-chart-bar" style="color:var(--accent2)"></i> Dashboard</div>
+
+        <div class="stat-grid" id="statGrid"></div>
+
+        <div class="section-label"><i class="ti ti-activity"></i> Activity (7 days)</div>
+        <div class="chart-card">
+          <div class="bar-chart" id="activityChart"></div>
+        </div>
+
+        <div class="section-label"><i class="ti ti-layout-grid"></i> Mode breakdown</div>
+        <div class="mode-grid" id="modeGrid"></div>
+
+        <div class="section-label" style="margin-top:4px"><i class="ti ti-history"></i> Recent queries</div>
+        <div class="recent-list" id="recentList"></div>
+      </div>
+
+      <!-- NEWS VIEW -->
+      <div class="panel-view hidden" id="newsView">
+        <div class="panel-title"><i class="ti ti-satellite" style="color:var(--news)"></i> World Feed</div>
+        <div class="news-toolbar">
+          <button class="filter-btn active" onclick="filterNews('all',this)">All</button>
+          <button class="filter-btn" onclick="filterNews('Tech',this)">Tech</button>
+          <button class="filter-btn" onclick="filterNews('World',this)">World</button>
+          <button class="filter-btn" onclick="filterNews('Science',this)">Science</button>
+          <button class="filter-btn" onclick="filterNews('Business',this)">Business</button>
+          <div class="live-badge"><div class="live-dot"></div> Live</div>
+          <button class="tb-btn" onclick="loadNews()" title="Refresh" style="margin-left:4px;width:28px;height:28px;font-size:13px"><i class="ti ti-refresh"></i></button>
+        </div>
+        <div class="news-grid" id="newsGrid">
+          <div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text3)">
+            <i class="ti ti-satellite" style="font-size:32px;display:block;margin-bottom:10px"></i>
+            Loading world feed...
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS VIEW -->
+      <div class="settings-view hidden" id="settingsView">
+        <div class="panel-title"><i class="ti ti-settings" style="color:var(--accent2)"></i> Settings</div>
+
+        <!-- API Connection Settings -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-key"></i> API Configuration</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">API Provider</div>
+              <div class="s-desc">Select the LLM provider to power ARIA</div>
+            </div>
+            <select class="select-input" id="settingProvider" onchange="onProviderChange(this.value)">
+              <option value="gemini">Gemini (Recommended)</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic (Claude)</option>
+            </select>
+          </div>
+
+          <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
+            <div class="setting-info" style="margin-bottom: 4px;">
+              <div class="s-title">API Key</div>
+              <div class="s-desc">Provide your API key (saved locally in your browser)</div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <input type="password" class="input-field" id="settingApiKey" placeholder="Enter API Key here..." style="margin-bottom:0;flex:1">
+              <button class="tb-btn" onclick="toggleApiKeyVisibility()" id="toggleKeyBtn" title="Toggle visibility" style="height:38px;width:38px;flex-shrink:0;"><i class="ti ti-eye"></i></button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Model</div>
+              <div class="s-desc">Select the specific model to use</div>
+            </div>
+            <select class="select-input" id="settingModel">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div style="margin-top:12px">
+            <button class="save-btn" onclick="saveApiConfig()">Save API Settings</button>
+          </div>
+        </div>
+
+        <!-- Profile -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-user"></i> Profile</div>
+          <div class="profile-edit">
+            <input class="input-field" id="settingName" placeholder="Your name" value="User">
+            <input class="input-field" id="settingTitle" placeholder="Your title / role" value="">
+            <button class="save-btn" onclick="saveProfile()">Save profile</button>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-palette"></i> Appearance</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Theme</div>
+              <div class="s-desc">Choose your interface theme</div>
+            </div>
+            <div class="theme-picker">
+              <div class="theme-opt theme-dark active" id="thDark" onclick="setTheme('dark')" title="Dark"><i class="ti ti-moon" style="color:#8b88a8;font-size:16px"></i></div>
+              <div class="theme-opt theme-light" id="thLight" onclick="setTheme('light')" title="Light"><i class="ti ti-sun" style="color:#5a587a;font-size:16px"></i></div>
+              <div class="theme-opt theme-purple" id="thPurple" onclick="setTheme('purple')" title="Purple"><i class="ti ti-sparkles" style="color:#c4b8ff;font-size:16px"></i></div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Font size</div>
+              <div class="s-desc">Adjust message text size</div>
+            </div>
+            <select class="select-input" id="fontSizeSetting" onchange="applyFontSize(this.value)">
+              <option value="13">Small (13px)</option>
+              <option value="14" selected>Default (14px)</option>
+              <option value="16">Large (16px)</option>
+              <option value="18">Extra large (18px)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Behaviour -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-adjustments"></i> Behaviour</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Send on Enter</div>
+              <div class="s-desc">Press Enter to send (Shift+Enter for new line)</div>
+            </div>
+            <div class="toggle on" id="toggleEnter" onclick="toggleSetting('enterToSend', this)"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Sound effects</div>
+              <div class="s-desc">Play subtle sound on message send</div>
+            </div>
+            <div class="toggle" id="toggleSound" onclick="toggleSetting('soundEnabled', this)"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Auto-scroll</div>
+              <div class="s-desc">Scroll to newest message automatically</div>
+            </div>
+            <div class="toggle on" id="toggleScroll" onclick="toggleSetting('autoScroll', this)"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Show timestamps</div>
+              <div class="s-desc">Show time on each message</div>
+            </div>
+            <div class="toggle on" id="toggleTimestamp" onclick="toggleSetting('showTimestamp', this)"></div>
+          </div>
+        </div>
+
+        <!-- Default mode -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-layout-grid"></i> Defaults</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Default mode</div>
+              <div class="s-desc">Mode to open with on launch</div>
+            </div>
+            <select class="select-input" id="defaultMode" onchange="appState.settings.defaultMode=this.value;saveState()">
+              <option value="think">Think</option>
+              <option value="research">Research</option>
+              <option value="create">Create</option>
+              <option value="execute">Execute</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-database"></i> Data</div>
+          <div class="danger-zone">
+            <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Danger zone — these actions are irreversible.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="danger-btn" onclick="clearAllHistory()"><i class="ti ti-trash"></i> Clear history</button>
+              <button class="danger-btn" onclick="resetAllStats()"><i class="ti ti-refresh"></i> Reset stats</button>
+              <button class="danger-btn" onclick="exportAllData()"><i class="ti ti-download"></i> Export my data</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-info-circle"></i> About</div>
+          <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:var(--text)">ARIA</div>
+            <div style="font-size:12px;color:var(--text3)">Adaptive Real-life Intelligence Agent · v2.1</div>
+            <div style="font-size:12px;color:var(--text3)">Powered by Gemini, OpenAI, & Claude · Serve proxy enabled</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay hidden" id="exportModal">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin:0"><i class="ti ti-download" style="margin-right:8px"></i>Export chat</div>
+      <button class="modal-close" onclick="closeExportModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:4px">Choose export format</div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="exportChat('txt')"><i class="ti ti-file-text"></i> Plain text</button>
+      <button class="modal-btn primary" onclick="exportChat('json')"><i class="ti ti-braces"></i> JSON</button>
+      <button class="modal-btn" onclick="exportChat('md')"><i class="ti ti-markdown"></i> Markdown</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>

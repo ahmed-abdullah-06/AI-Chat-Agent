@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARIA — Adaptive Real-life Intelligence Agent</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- MOBILE OVERLAY -->
+    <div class="mob-overlay" id="mobOverlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sb-top">
+        <div class="aria-mark">A</div>
+        <div class="aria-wordmark">ARIA</div>
+        <button class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+          <i class="ti ti-layout-sidebar"></i>
+        </button>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Modes</div>
+      </div>
+
+      <div class="nav-area">
+
+        <div class="nav-item active" id="nav-think" onclick="switchView('chat','think')">
+          <i class="ti ti-bulb ni-icon"></i>
+          <span class="ni-label">Think</span>
+          <div class="ni-dot" style="background:var(--think)"></div>
+        </div>
+
+        <div class="nav-item" id="nav-research" onclick="switchView('chat','research')">
+          <i class="ti ti-search ni-icon"></i>
+          <span class="ni-label">Research</span>
+          <div class="ni-dot" style="background:var(--research)"></div>
+        </div>
+
+        <div class="nav-item" id="nav-create" onclick="switchView('chat','create')">
+          <i class="ti ti-pencil ni-icon"></i>
+          <span class="ni-label">Create</span>
+          <div class="ni-dot" style="background:var(--create)"></div>
+        </div>
+
+        <div class="nav-item" id="nav-execute" onclick="switchView('chat','execute')">
+          <i class="ti ti-rocket ni-icon"></i>
+          <span class="ni-label">Execute</span>
+          <div class="ni-dot" style="background:var(--execute)"></div>
+        </div>
+
+        <div class="nav-item" id="nav-news" onclick="switchView('news','think')">
+          <i class="ti ti-world ni-icon"></i>
+          <span class="ni-label">World Feed</span>
+          <div class="ni-dot" style="background:var(--news)"></div>
+        </div>
+
+        <div class="nav-item" id="nav-dash" onclick="switchView('dash','think')">
+          <i class="ti ti-chart-bar ni-icon"></i>
+          <span class="ni-label">Dashboard</span>
+          <div class="ni-dot" style="background:var(--accent)"></div>
+        </div>
+
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">History</div>
+      </div>
+
+      <div class="sb-history" id="sbHistory">
+        <div class="hist-empty">No history yet</div>
+      </div>
+
+      <div class="sb-bottom">
+        <div class="sb-stats">
+          <div class="stat-pill">
+            <div class="stat-v" id="statMsgs">0</div>
+            <div class="stat-l">Messages</div>
+          </div>
+          <div class="stat-pill">
+            <div class="stat-v" id="statSess">1</div>
+            <div class="stat-l">Sessions</div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="main">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+
+        <div class="topbar-left">
+          <button class="icon-btn" id="mobMenuBtn" onclick="openMobileSidebar()" style="display:none">
+            <i class="ti ti-menu-2"></i>
+          </button>
+          <div class="mode-pill">
+            <div class="mpd" id="modeColor" style="background:var(--think)"></div>
+            <span id="modeText">Think</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="icon-btn" onclick="newChat()" title="New chat">
+            <i class="ti ti-plus"></i>
+          </button>
+          <button class="icon-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">
+            <i class="ti ti-microphone"></i>
+          </button>
+          <button class="icon-btn" onclick="exportChat()" title="Export chat">
+            <i class="ti ti-download"></i>
+          </button>
+          <button class="icon-btn" onclick="openSettings()" title="Settings">
+            <i class="ti ti-settings"></i>
+          </button>
+        </div>
+
+      </header>
+
+      <!-- CONTENT -->
+      <div class="content">
+
+        <!-- ── CHAT VIEW ── -->
+        <section class="chat-view" id="chatView">
+
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="welcome" id="welcome">
+              <div class="welcome-mark">A</div>
+              <h1>ARIA</h1>
+              <p>Adaptive Real-life Intelligence Agent.<br>Think deeper, research faster, create better, execute smarter.</p>
+              <div class="welcome-modes">
+                <div class="wm-badge" style="color:var(--think);border-color:var(--think)">Think</div>
+                <div class="wm-badge" style="color:var(--research);border-color:var(--research)">Research</div>
+                <div class="wm-badge" style="color:var(--create);border-color:var(--create)">Create</div>
+                <div class="wm-badge" style="color:var(--execute);border-color:var(--execute)">Execute</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chips-wrap" id="chipsWrap"></div>
+
+          <div class="input-bar">
+            <div class="input-wrap">
+              <textarea
+                id="chatInp"
+                class="chat-inp"
+                placeholder="Ask ARIA anything..."
+                rows="1"
+                onkeydown="handleKey(event)">
+              </textarea>
+              <div class="inp-actions">
+                <button class="inp-btn" onclick="toggleVoice()" title="Voice">
+                  <i class="ti ti-microphone"></i>
+                </button>
+                <button class="send-btn" id="sendBtn" onclick="sendMsg()">
+                  <i class="ti ti-arrow-up"></i>
+                </button>
+              </div>
+            </div>
+            <div class="inp-hint">Enter to send · Shift+Enter for new line</div>
+          </div>
+
+        </section>
+
+        <!-- ── DASHBOARD VIEW ── -->
+        <section class="dash-view" id="dashView" style="display:none">
+
+          <div class="section-head">
+            <div class="live-dot"></div>
+            Dashboard
+          </div>
+
+          <div class="dash-kpi" id="kpiGrid"></div>
+
+          <div class="two-col">
+            <div class="chart-card">
+              <div class="chart-title">7-Day Activity</div>
+              <div class="bar-chart" id="actBars"></div>
+              <div class="bc-labels" id="actLabels"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Mode Usage</div>
+              <div class="mode-bars" id="modeBars"></div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ── WORLD FEED VIEW ── -->
+        <section class="news-view" id="newsView" style="display:none">
+
+          <div class="news-top">
+            <div class="section-head" style="margin:0">
+              <div class="live-dot"></div>
+              World Feed
+            </div>
+            <button class="news-refresh" onclick="loadNews(true)">
+              <i class="ti ti-refresh"></i> Refresh
+            </button>
+          </div>
+
+          <div class="news-filters">
+            <button class="filter-chip active" onclick="filterNews('all',this)">All</button>
+            <button class="filter-chip" onclick="filterNews('tech',this)">Tech</button>
+            <button class="filter-chip" onclick="filterNews('world',this)">World</button>
+            <button class="filter-chip" onclick="filterNews('science',this)">Science</button>
+            <button class="filter-chip" onclick="filterNews('business',this)">Business</button>
+          </div>
+
+          <div class="news-grid" id="newsGrid">
+            <div class="news-loading">
+              <i class="ti ti-satellite"></i>
+              <span>Loading world feed…</span>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+      <!-- /content -->
+
+    </main>
+
+  </div>
+  <!-- /app -->
+
+  <!-- ── SETTINGS PANEL ── -->
+  <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+
+  <div class="settings-panel" id="settingsPanel">
+    <div class="sp-header">
+      <h2>Settings</h2>
+      <button class="sp-close" onclick="closeSettings()"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="sp-body">
+
+      <!-- Profile -->
+      <div class="sp-section">
+        <div class="sp-title">Profile</div>
+        <div class="profile-card">
+          <div class="profile-av" id="profAv">A</div>
+          <div>
+            <div class="profile-name" id="profName">ARIA User</div>
+            <div class="profile-sub">Personal workspace</div>
+          </div>
+        </div>
+        <label class="sp-label">Display Name</label>
+        <input type="text" class="sp-input" id="nameInput" placeholder="Your name" oninput="updateProfile()">
+      </div>
+
+      <!-- Appearance -->
+      <div class="sp-section">
+        <div class="sp-title">Appearance</div>
+        <div class="sp-row">
+          <div>
+            <div class="sp-row-lbl"><i class="ti ti-moon"></i> Dark mode</div>
+            <div class="sp-row-sub">Switch theme</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="themeToggle" checked onchange="toggleTheme()">
+            <span class="toggle-track"></span>
+            <span class="toggle-thumb"></span>
+          </label>
+        </div>
+        <div class="sp-row">
+          <div class="sp-row-lbl"><i class="ti ti-text-size"></i> Response style</div>
+          <select class="sp-select" id="styleSelect" onchange="S.styleMode=this.value">
+            <option value="concise">Concise</option>
+            <option value="balanced" selected>Balanced</option>
+            <option value="detailed">Detailed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div class="sp-section">
+        <div class="sp-title">Data &amp; Export</div>
+        <button class="sp-btn" onclick="exportChat()"><i class="ti ti-download"></i> Export chat (.txt)</button>
+        <button class="sp-btn" onclick="exportJSON()" style="margin-top:6px"><i class="ti ti-file-code"></i> Export as JSON</button>
+        <button class="sp-btn danger-btn" onclick="clearAll()" style="margin-top:6px"><i class="ti ti-trash"></i> Clear all data</button>
+      </div>
+
+      <!-- About -->
+      <div class="sp-section">
+        <div class="sp-title">About</div>
+        <div class="sp-row">
+          <div class="sp-row-lbl"><i class="ti ti-info-circle"></i> Version</div>
+          <span style="font-size:12px;color:var(--text3)">1.0.0</span>
+        </div>
+        <div class="sp-row">
+          <div class="sp-row-lbl"><i class="ti ti-brain"></i> Powered by</div>
+          <span style="font-size:12px;color:var(--text3)">Claude Sonnet 4</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast">
+    <i class="ti ti-check"></i>
+    <span id="toastMsg">Done</span>
+  </div>
+
+  <!-- JS -->
+  <script src="app.js"></script>
+
+</body>
+</html>
