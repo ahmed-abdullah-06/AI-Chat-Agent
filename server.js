@@ -1,3 +1,6 @@
+// Main Express server for the AI Chat Agent
+// Handles API routes and serves the frontend build
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -9,6 +12,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Initialize Express application
 const app = express();
 const PORT = process.env.PORT || 3000;
 
