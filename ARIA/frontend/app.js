@@ -1,3 +1,6 @@
+// ARIA Frontend - Main application logic
+// Handles UI interactions and communicates with the backend API
+
 /* ═══════════════════════════════════════
    ARIA — app.js  (Professional Edition)
    FastAPI + OpenRouter backend
@@ -196,6 +199,7 @@ function addMsg(role, text, mode) {
 }
 
 // ── SEND MESSAGE ──────────────────────────────
+// Sends the user's message to the backend and displays the response
 async function sendMsg() {
   const inp  = document.getElementById('chatInp');
   const btn  = document.getElementById('sendBtn');
