@@ -1,8 +1,12 @@
+// Main entry point for the frontend application
+// Initializes the app and mounts it to the DOM
+
 /* ============================================================
    ARIA — APPLICATION LOGIC (REFACTORED FOR VITE & BACKEND PROXY)
    ============================================================ */
 
 // ---- INITIAL STATE ----
+// Sets up event listeners for the chat interface
 const appState = {
   currentMode: 'think',
   currentView: 'chat',
