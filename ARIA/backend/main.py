@@ -1,3 +1,8 @@
+"""
+ARIA Backend - FastAPI server
+Handles chat requests and communicates with the OpenRouter API
+"""
+
 # ═══════════════════════════════════════════
 #  ARIA — backend/main.py
 #  FastAPI + OpenRouter
@@ -16,6 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ── APP ──────────────────────────────────────
+# Initialize FastAPI application
 app = FastAPI(
     title="ARIA Backend",
     description="Adaptive Real-life Intelligence Agent — Powered by OpenRouter",
