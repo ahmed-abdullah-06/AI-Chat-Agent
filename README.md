@@ -2,6 +2,13 @@
 
 ARIA is an AI chat agent app with a web frontend and backend, supporting multiple AI providers (Gemini, OpenAI, Anthropic, OpenRouter).
 
+## Features
+
+- Multi-provider AI chat support (Gemini, OpenAI, Anthropic, OpenRouter)
+- Web-based frontend built with Vite
+- FastAPI backend for ARIA agent mode
+- Express-based alternate backend (Agent app 3f)
+
 ## Project Structure
 AI-Chat-Agent/
 ├── src/ # Vite-based frontend (main app)
