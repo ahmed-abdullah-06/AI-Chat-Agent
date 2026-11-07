@@ -1,22 +1,49 @@
 {
   "name": "aria-agent-app",
-  "version": "2.0.0",
-  "description": "ARIA - Adaptive Real-life Intelligence Agent App",
+  "version": "2.1.0",
+  "description": "ARIA — Adaptive Real-life Intelligence Agent: a production-ready, multi-provider AI chat workspace with streaming, modes, analytics and a PWA frontend.",
   "main": "server.js",
   "type": "module",
+  "license": "MIT",
+  "author": "Ahmed",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "llm",
+    "gemini",
+    "openai",
+    "anthropic",
+    "openrouter",
+    "agent",
+    "pwa",
+    "express",
+    "vite"
+  ],
   "scripts": {
     "dev:frontend": "vite --host",
     "dev:backend": "node server.js",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build": "vite build",
-    "start": "node server.js"
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "build": "node scripts/vendor-assets.mjs && vite build",
+    "preview": "vite preview",
+    "start": "node scripts/ensure-dist.mjs && node server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check server/app.js && node --check server/routes.js && node --check server/providers.js && node --check server/validate.js && node --check server/config.js && node --check src/main.js && node --check src/markdown.js && node --check scripts/vendor-assets.mjs && node scripts/vendor-assets.mjs && node scripts/check-handlers.mjs && node scripts/audit-undefined.mjs"
   },
   "dependencies": {
+    "compression": "^1.8.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.7.3",
+    "helmet": "^8.3.0"
   },
   "devDependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/syne": "^5.3.0",
+    "@tabler/icons-webfont": "^2.44.0",
     "concurrently": "^8.2.2",
     "vite": "^5.2.11"
   }
