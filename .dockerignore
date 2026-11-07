@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+.git
+.github
+.env
+**/.env
+dist
+coverage
+*.log
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+ARIA
+Agent app 3f
