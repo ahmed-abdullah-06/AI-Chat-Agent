@@ -46,8 +46,11 @@ image attachments, live world feed, analytics, and a fully installable offline P
 **Intelligence layer**
 - Four focused modes (Think · Research · Create · Execute), each with its own system prompt
 - Global **custom instructions**, **temperature** and **max response length** controls
-- Providers: **Gemini · OpenAI · Anthropic · OpenRouter** — model catalog served by the API
-  (`/api/models`) with a bundled offline fallback
+- Providers: **Gemini · OpenAI · Anthropic · OpenRouter · Local (Ollama)** — model catalog
+  served by the API (`/api/models`) with a bundled offline fallback
+- **Key-less local mode** — point `LOCAL_BASE_URL` at any OpenAI-compatible server
+  (Ollama, LM Studio, llama.cpp, vLLM); installed models are discovered live and
+  nothing leaves your machine
 - Automatic **World Feed**: 12 AI-generated news cards with graceful mock fallback
 
 **Product quality**
@@ -60,8 +63,8 @@ image attachments, live world feed, analytics, and a fully installable offline P
 **Engineering**
 - Hardened Express API: Helmet + CSP, CORS allow-list, rate limiting, compression,
   strict payload validation, upstream timeouts, friendly error mapping, request IDs, graceful shutdown
-- **25 tests** (`node --test`) covering the API, validation, JSON sanitising,
-  streaming contract and the Markdown renderer
+- **31 tests** (`node --test`) covering the API, validation, JSON sanitising,
+  streaming contract, the key-less local provider and the Markdown renderer
 - CI workflow, Dockerfile with health check, MIT license
 
 ---
@@ -84,7 +87,8 @@ npm start            # http://localhost:3000
 ```
 
 Then open **Settings → API Configuration**, choose a provider, paste your key and press
-**Test connection**.
+**Test connection**. Or pick **Local — Ollama (no API key)** if you run a local
+inference server (`ollama serve`) — no key needed.
 
 | Command | What it does |
 | --- | --- |
@@ -112,7 +116,7 @@ Then open **Settings → API Configuration**, choose a provider, paste your key 
 │ validate.js → providers.js → normalizeUpstreamError()           │
 └──────┼──────────────────────────────────────────────────────────┘
        ▼
-  Gemini · OpenAI · Anthropic · OpenRouter        (server-side keys or user keys)
+  Gemini · OpenAI · Anthropic · OpenRouter · Local (Ollama)   (server-side keys or user keys)
 ```
 
 **Frontend** (`src/`) — dependency-free SPA: `main.js` (application),
@@ -195,7 +199,8 @@ Closing the connection aborts the upstream request — that is how **Stop** work
 ```
 
 Codes: `bad_request · invalid_messages · unknown_provider · unauthorized · rate_limited ·
-invalid_api_key · provider_rate_limited · provider_unavailable · upstream_timeout · not_found`
+invalid_api_key · provider_rate_limited · provider_unavailable · upstream_timeout ·
+local_unreachable · model_not_found · not_found`
 
 ---
 
@@ -213,18 +218,22 @@ All settings live in `.env` (see [`.env.example`](.env.example)):
 | `UPSTREAM_TIMEOUT_MS` | `60000` | Provider response timeout |
 | `REQUEST_LOGS` / `LOG_LEVEL` | `true` / `info` | Structured request logs |
 | `GEMINI_API_KEY` `OPENAI_API_KEY` `ANTHROPIC_API_KEY` `OPENROUTER_API_KEY` | *(empty)* | Optional shared keys |
+| `LOCAL_BASE_URL` | `http://localhost:11434/v1` | Any OpenAI-compatible server (Ollama / LM Studio / vLLM) |
+| `LOCAL_API_KEY` | *(empty)* | Only if your local server requires auth |
 
 ---
 
 ## Testing
 
 ```bash
-npm test        # 25 tests: API, validation, SSE streaming, sanitising, markdown
+npm test        # 31 tests: API, validation, SSE streaming, local provider, sanitising, markdown
 npm run check   # syntax check across server + frontend entries
 ```
 
 - `test/server.test.js` — health, catalog, validation, security headers, rate/error contracts
 - `test/stream.test.js` — fake upstream provider → real SSE proxy end-to-end
+- `test/local.test.js` — key-less Ollama path: no auth header, live model discovery,
+  unreachable server and missing-model error mapping
 - `test/markdown.test.js` — rendering correctness and XSS hardening
 
 CI runs syntax check, tests and a production build on every push (`.github/workflows/ci.yml`).
@@ -283,7 +292,7 @@ AI-Chat-Agent/
 ├── server/                 # Express API
 │   ├── app.js              # Middleware, static hosting, error handling
 │   ├── routes.js           # /api endpoints (chat, stream, news, health, models)
-│   ├── providers.js        # Gemini/OpenAI/Anthropic/OpenRouter adapters
+│   ├── providers.js        # Gemini/OpenAI/Anthropic/OpenRouter/Local adapters
 │   ├── validate.js         # Payload validation
 │   ├── errors.js           # Typed errors + upstream normalisation
 │   ├── config.js           # Env configuration
@@ -301,7 +310,7 @@ AI-Chat-Agent/
 
 - [ ] Prompt library & reusable templates
 - [ ] Team/usage analytics dashboard
-- [ ] Bring-your-own-endpoint (Ollama / LiteLLM) provider
+- [x] Bring-your-own-endpoint (Ollama / LiteLLM) provider
 - [ ] Conversation summarisation for long-context titles
 
 Contributions and issues are welcome.
