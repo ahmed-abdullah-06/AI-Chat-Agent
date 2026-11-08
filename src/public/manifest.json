@@ -1,20 +1,32 @@
 {
+  "id": "/",
   "name": "ARIA — Adaptive Intelligence Agent",
   "short_name": "ARIA",
-  "description": "Adaptive Real-life Intelligence Agent terminal",
+  "description": "ARIA is an adaptive AI agent workspace with four working modes, streaming chat, a live world feed and local-first privacy.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#08080e",
   "theme_color": "#7b68ee",
-  "orientation": "portrait",
-  "categories": ["productivity", "utilities"],
+  "orientation": "any",
+  "categories": ["productivity", "utilities", "business"],
+  "lang": "en",
   "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
     {
       "src": "/logo.svg",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    { "name": "New chat", "url": "/?action=new" },
+    { "name": "World Feed", "url": "/?view=news" }
   ]
 }

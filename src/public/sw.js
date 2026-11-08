@@ -1,70 +1,87 @@
-const CACHE_NAME = 'aria-cache-v3';
-const STATIC_ASSETS = [
+/* ARIA Service Worker — PWA shell + offline fallback
+   Strategy:
+   - API calls: always network (never cached)
+   - Navigations: network-first, cached shell when offline
+   - Same-origin assets (build output, self-hosted fonts/icons): cache-first,
+     refreshed in the background
+   The app ships zero third-party requests, so the shell works fully offline.
+*/
+
+const CACHE_NAME = 'aria-cache-v6';
+const SHELL = [
   '/',
   '/index.html',
   '/logo.svg',
   '/manifest.json',
-  'https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css'
+  '/vendor/fonts/fonts.css',
+  '/vendor/icons/tabler-icons.min.css'
 ];
 
-// Install Event - Caching static shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Pre-caching static assets');
-      return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    caches
+      .open(CACHE_NAME)
+      .then((cache) =>
+        Promise.all(
+          SHELL.map((url) =>
+            cache.add(url).catch(() => {
+              /* a missing optional asset must not break install */
+            })
+          )
+        )
+      )
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activate Event - Clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// Fetch Event - Serve cache first, fallback to network for UI assets
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-  // Bypass service worker for dynamic API requests
-  if (url.pathname.startsWith('/api')) {
+  const url = new URL(req.url);
+  // Never cache API traffic (it is POST anyway) or cross-origin POSTs.
+  if (url.pathname.startsWith('/api')) return;
+
+  // Page navigations: network first so users always get the newest build.
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+          return response;
+        })
+        .catch(() => caches.match('/index.html').then((cached) => cached || caches.match('/')))
+    );
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const isStatic = url.origin === self.location.origin;
 
-      return fetch(event.request).then((networkResponse) => {
-        // Cache new static requests on-the-fly
-        if (
-          event.request.method === 'GET' &&
-          networkResponse.status === 200 &&
-          (url.origin === self.location.origin || url.href.includes('fonts.googleapis.com') || url.href.includes('cdnjs.cloudflare.com'))
-        ) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return networkResponse;
-      }).catch((err) => {
-        console.error('[Service Worker] Fetch failed:', err);
-      });
-    })
-  );
+  if (isStatic) {
+    // Cache-first for hashed build assets, revalidate in the background.
+    event.respondWith(
+      caches.match(req).then((cached) => {
+        const network = fetch(req)
+          .then((response) => {
+            if (response && response.status === 200) {
+              const copy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+            }
+            return response;
+          })
+          .catch(() => cached);
+        return cached || network;
+      })
+    );
+  }
 });

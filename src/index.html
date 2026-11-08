@@ -13,9 +13,10 @@
   <meta name="apple-mobile-web-app-title" content="ARIA">
   <link rel="apple-touch-icon" href="/logo.svg">
   
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
-  <link rel="stylesheet" href="./style.css">
+  <!-- Self-hosted fonts + icon font (no third-party requests, works offline) -->
+  <link rel="stylesheet" href="/vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="/vendor/icons/tabler-icons.min.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
 
@@ -28,6 +29,12 @@
       <div class="sb-wordmark">ARIA</div>
       <button class="sb-collapse" onclick="toggleSidebar()" title="Collapse sidebar">
         <i class="ti ti-layout-sidebar-left-collapse"></i>
+      </button>
+    </div>
+
+    <div class="sb-newchat">
+      <button class="new-chat-btn" onclick="newChat()" title="New chat (Ctrl+K)">
+        <i class="ti ti-plus"></i><span class="ni-label">New chat</span>
       </button>
     </div>
 
@@ -77,8 +84,12 @@
         History
         <button onclick="clearAllHistory()" style="font-size:10px;background:transparent;border:none;color:var(--text3);cursor:pointer;padding:0 2px">Clear</button>
       </div>
+      <div class="sb-search">
+        <i class="ti ti-search"></i>
+        <input id="historySearch" type="search" placeholder="Search chats" oninput="filterHistory(this.value)" aria-label="Search conversations">
+      </div>
     </div>
-    <div class="sb-history" id="historyList">
+    <div class="sb-history" id="historyList" role="list">
       <div style="font-size:11px;color:var(--text3);padding:6px 8px">No history yet</div>
     </div>
 
@@ -101,7 +112,7 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
-      <button class="mobile-toggle" onclick="openMobileSidebar()">
+      <button class="mobile-toggle" id="drawerToggle" onclick="toggleDrawer()" title="Open menu" aria-label="Open menu">
         <i class="ti ti-menu-2"></i>
       </button>
       <div class="topbar-mode">
@@ -109,17 +120,24 @@
         <span id="topModeLabel">Think</span>
       </div>
       <div class="topbar-right">
-        <button class="tb-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">
+        <div class="conn-pill" id="connPill" title="Connection status">
+          <span class="conn-dot" id="connDot"></span>
+          <span id="connLabel">Online</span>
+        </div>
+        <button class="tb-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input" aria-label="Voice input">
           <i class="ti ti-microphone"></i>
         </button>
         <div class="tb-divider"></div>
-        <button class="tb-btn" onclick="openExportModal()" title="Export chat">
+        <button class="tb-btn" onclick="openShortcuts()" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
+          <i class="ti ti-keyboard"></i>
+        </button>
+        <button class="tb-btn" onclick="openExportModal()" title="Export chat" aria-label="Export chat">
           <i class="ti ti-download"></i>
         </button>
-        <button class="tb-btn" onclick="newChat()" title="New chat">
+        <button class="tb-btn" onclick="newChat()" title="New chat" aria-label="New chat">
           <i class="ti ti-plus"></i>
         </button>
-        <button class="tb-btn" id="themeBtn" onclick="cycleTheme()" title="Toggle theme">
+        <button class="tb-btn" id="themeBtn" onclick="cycleTheme()" title="Toggle theme" aria-label="Toggle theme">
           <i class="ti ti-moon"></i>
         </button>
       </div>
@@ -147,7 +165,11 @@
         </div>
 
         <!-- MESSAGES -->
-        <div class="chat-messages hidden" id="chatMessages"></div>
+        <div class="chat-messages hidden" id="chatMessages" role="log" aria-live="polite" aria-relevant="additions text"></div>
+
+        <button class="scroll-down hidden" id="scrollDownBtn" onclick="scrollDown(true)" title="Scroll to latest" aria-label="Scroll to latest">
+          <i class="ti ti-arrow-down"></i>
+        </button>
 
         <!-- CHIPS -->
         <div class="chips-area" id="chipsArea">
@@ -157,18 +179,24 @@
 
         <!-- INPUT -->
         <div class="input-area">
+          <div class="attach-tray hidden" id="attachTray"></div>
           <div class="input-wrap">
-            <textarea class="chat-textarea" id="chatInput" rows="1" placeholder="Ask ARIA anything..." oninput="onInputChange(this)" onkeydown="handleInputKey(event)"></textarea>
+            <textarea class="chat-textarea" id="chatInput" rows="1" placeholder="Ask ARIA anything..." oninput="onInputChange(this)" onkeydown="handleInputKey(event)" aria-label="Message ARIA"></textarea>
             <div class="input-actions">
               <span class="char-count" id="charCount"></span>
-              <button class="inp-btn" id="micBtn" onclick="toggleVoice()" title="Voice input">
+              <button class="inp-btn" id="attachBtn" onclick="pickImage()" title="Attach image" aria-label="Attach image">
+                <i class="ti ti-paperclip"></i>
+              </button>
+              <button class="inp-btn" id="micBtn" onclick="toggleVoice()" title="Voice input" aria-label="Voice input">
                 <i class="ti ti-microphone"></i>
               </button>
-              <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
-                <i class="ti ti-arrow-up"></i>
+              <button class="send-btn" id="sendBtn" onclick="onSendClick()" title="Send (Esc to stop)" aria-label="Send message">
+                <i class="ti ti-arrow-up" id="sendIcon"></i>
               </button>
             </div>
           </div>
+          <input type="file" id="imageInput" accept="image/*" multiple class="hidden" onchange="handleFiles(this.files)">
+          <div class="input-hint">ARIA can make mistakes. Verify important information.</div>
         </div>
       </div>
 
@@ -222,21 +250,23 @@
               <div class="s-title">API Provider</div>
               <div class="s-desc">Select the LLM provider to power ARIA</div>
             </div>
-            <select class="select-input" id="settingProvider" onchange="onProviderChange(this.value)">
+            <select class="select-input" id="settingProvider" onchange="onProviderChange(this.value)" aria-label="API provider">
               <option value="gemini">Gemini (Recommended)</option>
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic (Claude)</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="local">Local — Ollama (no API key)</option>
             </select>
           </div>
 
           <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:8px">
             <div class="setting-info" style="margin-bottom: 4px;">
               <div class="s-title">API Key</div>
-              <div class="s-desc">Provide your API key (saved locally in your browser)</div>
+              <div class="s-desc" id="apiKeyDesc">Stored only in this browser and sent straight to the proxy</div>
             </div>
             <div style="display:flex;gap:8px">
-              <input type="password" class="input-field" id="settingApiKey" placeholder="Enter API Key here..." style="margin-bottom:0;flex:1">
-              <button class="tb-btn" onclick="toggleApiKeyVisibility()" id="toggleKeyBtn" title="Toggle visibility" style="height:38px;width:38px;flex-shrink:0;"><i class="ti ti-eye"></i></button>
+              <input type="password" class="input-field" id="settingApiKey" placeholder="Enter API Key here..." style="margin-bottom:0;flex:1" autocomplete="off" spellcheck="false" oninput="onApiKeyInput(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();saveApiConfig()}">
+              <button class="tb-btn" onclick="toggleApiKeyVisibility()" id="toggleKeyBtn" title="Toggle visibility" aria-label="Toggle API key visibility" style="height:38px;width:38px;flex-shrink:0;"><i class="ti ti-eye"></i></button>
             </div>
           </div>
 
@@ -245,12 +275,60 @@
               <div class="s-title">Model</div>
               <div class="s-desc">Select the specific model to use</div>
             </div>
-            <select class="select-input" id="settingModel">
+            <select class="select-input" id="settingModel" onchange="onModelChange(this.value)">
               <!-- Dynamically populated -->
             </select>
           </div>
-          <div style="margin-top:12px">
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
             <button class="save-btn" onclick="saveApiConfig()">Save API Settings</button>
+            <button class="ghost-btn" onclick="testConnection(this)" id="testConnBtn"><i class="ti ti-plug-connected"></i> Test connection</button>
+          </div>
+        </div>
+
+        <!-- Generation -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-robot"></i> Generation</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Streaming responses</div>
+              <div class="s-desc">Show answers token-by-token as they are generated</div>
+            </div>
+            <div class="toggle on" id="toggleStream" onclick="toggleSetting('streaming', this)"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Creativity (temperature)</div>
+              <div class="s-desc">Lower = focused, higher = imaginative</div>
+            </div>
+            <div class="range-wrap">
+              <input type="range" id="tempRange" min="0" max="2" step="0.1" value="0.7" oninput="onTemperature(this.value)" aria-label="Temperature">
+              <span class="range-val" id="tempVal">0.7</span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-title">Max response length</div>
+              <div class="s-desc">Upper token limit per answer</div>
+            </div>
+            <select class="select-input" id="maxTokensSetting" onchange="setMaxTokens(this.value)">
+              <option value="1024">Short (1k)</option>
+              <option value="2048" selected>Medium (2k)</option>
+              <option value="4096">Long (4k)</option>
+              <option value="8192">Max (8k)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="settings-section">
+          <div class="section-label"><i class="ti ti-note"></i> Custom instructions</div>
+          <div class="setting-row" style="flex-direction:column;align-items:stretch">
+            <div class="setting-info" style="margin-bottom:8px">
+              <div class="s-title">How should ARIA behave?</div>
+              <div class="s-desc">Applied to every mode — tone, format, things to avoid, your context</div>
+            </div>
+            <textarea class="input-field" id="settingInstructions" rows="4" placeholder="e.g. I'm a product manager. Keep answers concise, use bullet points, and always end with a next action." style="margin-bottom:0;resize:vertical"></textarea>
+            <div style="margin-top:10px"><button class="save-btn" onclick="saveInstructions()">Save instructions</button></div>
           </div>
         </div>
 
@@ -333,7 +411,7 @@
               <div class="s-title">Default mode</div>
               <div class="s-desc">Mode to open with on launch</div>
             </div>
-            <select class="select-input" id="defaultMode" onchange="appState.settings.defaultMode=this.value;saveState()">
+            <select class="select-input" id="defaultMode" onchange="setDefaultMode(this.value)">
               <option value="think">Think</option>
               <option value="research">Research</option>
               <option value="create">Create</option>
@@ -351,6 +429,8 @@
               <button class="danger-btn" onclick="clearAllHistory()"><i class="ti ti-trash"></i> Clear history</button>
               <button class="danger-btn" onclick="resetAllStats()"><i class="ti ti-refresh"></i> Reset stats</button>
               <button class="danger-btn" onclick="exportAllData()"><i class="ti ti-download"></i> Export my data</button>
+              <button class="ghost-btn" onclick="importData()"><i class="ti ti-upload"></i> Import data</button>
+              <input type="file" id="importInput" accept="application/json" class="hidden" onchange="handleImportFile(this.files)">
             </div>
           </div>
         </div>
@@ -360,8 +440,9 @@
           <div class="section-label"><i class="ti ti-info-circle"></i> About</div>
           <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px">
             <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;color:var(--text)">ARIA</div>
-            <div style="font-size:12px;color:var(--text3)">Adaptive Real-life Intelligence Agent · v2.1</div>
-            <div style="font-size:12px;color:var(--text3)">Powered by Gemini, OpenAI, & Claude · Serve proxy enabled</div>
+            <div style="font-size:12px;color:var(--text3)">Adaptive Real-life Intelligence Agent · <span id="aboutVersion">v2.1</span></div>
+            <div style="font-size:12px;color:var(--text3)">Powered by Gemini, OpenAI, Claude &amp; OpenRouter · Streaming proxy enabled</div>
+            <div style="font-size:12px;color:var(--text3)" id="aboutServer">Server: checking…</div>
           </div>
         </div>
       </div>
@@ -382,6 +463,26 @@
       <button class="modal-btn" onclick="exportChat('txt')"><i class="ti ti-file-text"></i> Plain text</button>
       <button class="modal-btn primary" onclick="exportChat('json')"><i class="ti ti-braces"></i> JSON</button>
       <button class="modal-btn" onclick="exportChat('md')"><i class="ti ti-markdown"></i> Markdown</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHORTCUTS MODAL -->
+<div class="modal-overlay hidden" id="shortcutsModal" onclick="if(event.target===this)closeShortcuts()">
+  <div class="modal" style="width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="modal-title" style="margin:0"><i class="ti ti-keyboard" style="margin-right:8px"></i>Keyboard shortcuts</div>
+      <button class="modal-close" onclick="closeShortcuts()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="shortcut-list">
+      <div class="shortcut-row"><span>Send message</span><kbd>Enter</kbd></div>
+      <div class="shortcut-row"><span>New line</span><kbd>Shift</kbd><kbd>Enter</kbd></div>
+      <div class="shortcut-row"><span>New chat</span><kbd>Ctrl</kbd><kbd>K</kbd></div>
+      <div class="shortcut-row"><span>Stop generating</span><kbd>Esc</kbd></div>
+      <div class="shortcut-row"><span>Focus the input</span><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>F</kbd></div>
+      <div class="shortcut-row"><span>Cycle theme</span><kbd>Ctrl</kbd><kbd>J</kbd></div>
+      <div class="shortcut-row"><span>Toggle sidebar</span><kbd>Ctrl</kbd><kbd>B</kbd></div>
+      <div class="shortcut-row"><span>This dialog</span><kbd>Ctrl</kbd><kbd>/</kbd></div>
     </div>
   </div>
 </div>
